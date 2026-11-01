@@ -1,0 +1,125 @@
+<?php
+
+include 'includes/db.php';
+
+if(isset($_POST['register'])){
+
+    $username = $_POST['username'];
+    $email = $_POST['email'];
+    $password = md5($_POST['password']);
+    $bus_route = $_POST['bus_route'];
+
+    $image = $_POST['image'];
+
+    $image_parts = explode(";base64,", $image);
+
+    $image_base64 = base64_decode($image_parts[1]);
+
+    $file_name = time() . ".png";
+
+    $file = "uploads/faces/" . $file_name;
+
+    file_put_contents($file, $image_base64);
+
+    mysqli_query($conn,
+    "INSERT INTO students(username,email,password,bus_route,face_image)
+    VALUES('$username','$email','$password','$bus_route','$file_name')");
+
+    echo "<script>alert('Registration Successful')</script>";
+}
+
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Register</title>
+
+<link rel="stylesheet" href="assets/css/style.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
+
+</head>
+
+<body>
+<div class="sidebar">
+
+<h2>Smart Bus</h2>
+
+<a href="index.php">🏠 Home</a>
+
+<a href="register.php">📝 Register</a>
+
+<a href="login.php">👨‍🎓 Student Login</a>
+
+<a href="admin/admin_login.php">🛠 Admin Login</a>
+
+</div>
+
+<div class="main">
+
+<div class="card">
+
+<h2>Student Registration</h2>
+
+<form method="POST">
+
+<input type="text" name="username" placeholder="Username" required>
+
+<input type="email" name="email" placeholder="Email" required>
+
+<input type="password" name="password" placeholder="Password" required>
+
+<input type="text" name="bus_route" placeholder="Bus Route" required>
+
+
+<div id="camera"></div>
+
+<br>
+
+<button type="button" onclick="take_snapshot()">
+Capture Face
+</button>
+
+<input type="hidden" name="image" class="image-tag">
+
+<div id="results"></div>
+
+<button type="submit" name="register">
+Register
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+<script>
+
+Webcam.set({
+    width:350,
+    height:300,
+    image_format:'png',
+    png_quality:90
+});
+
+Webcam.attach('#camera');
+
+function take_snapshot(){
+
+    Webcam.snap(function(data_uri){
+
+        document.querySelector('.image-tag').value = data_uri;
+
+        document.getElementById('results').innerHTML =
+        '<img src="'+data_uri+'" width="300"/>';
+
+    });
+}
+
+</script>
+
+</body>
+</html>

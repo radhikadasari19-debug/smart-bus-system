@@ -1,0 +1,424 @@
+<?php
+
+session_start();
+
+include '../includes/db.php';
+
+date_default_timezone_set("Asia/Kolkata");
+
+$student_id = $_SESSION['student_id'];
+
+$message = "";
+
+$error = "";
+
+/* CHECK ALREADY PAID */
+
+$already_paid = mysqli_query($conn,
+
+"SELECT * FROM payments
+
+WHERE student_id='$student_id'");
+
+if(isset($_POST['submit_payment'])){
+
+    /* IF PAYMENT ALREADY EXISTS */
+
+    if(mysqli_num_rows($already_paid)>0){
+
+        $error = "❌ Payment Already Submitted";
+
+    }else{
+
+        $amount = trim($_POST['amount']);
+
+        $upi_id = trim($_POST['transaction_id']);
+
+        $date = date('Y-m-d');
+
+        /* FILE */
+
+        $screenshot = $_FILES['screenshot']['name'];
+
+        $tmp = $_FILES['screenshot']['tmp_name'];
+
+        if(
+
+        empty($amount) ||
+
+        empty($upi_id) ||
+
+        empty($screenshot)
+
+        ){
+
+            $error = "❌ Complete Payment & Upload Screenshot";
+
+        }else{
+
+            $new_name = time().'_'.$screenshot;
+
+            move_uploaded_file(
+
+            $tmp,
+
+            "../uploads/".$new_name
+
+            );
+
+            /* INSERT PAYMENT */
+
+            $insert = mysqli_query($conn,
+
+            "INSERT INTO payments(
+
+            student_id,
+            amount,
+            transaction_id,
+            screenshot,
+            payment_status,
+            payment_date
+
+            )
+
+            VALUES(
+
+            '$student_id',
+            '$amount',
+            '$upi_id',
+            '$new_name',
+            'Paid',
+            '$date'
+
+            )");
+
+            if($insert){
+
+                $message = "✅ Payment Successfully Submitted";
+
+            }else{
+
+                $error = mysqli_error($conn);
+            }
+        }
+    }
+}
+
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>PhonePe Payment</title>
+
+<link rel="stylesheet"
+href="../assets/css/style.css">
+
+<style>
+
+.payment-box{
+
+max-width:550px;
+
+margin:auto;
+
+background:var(--card);
+
+padding:30px;
+
+border-radius:20px;
+
+box-shadow:
+0 10px 20px rgba(0,0,0,0.2);
+
+text-align:center;
+}
+
+.qr{
+
+width:300px;
+
+margin-top:20px;
+
+border-radius:20px;
+
+border:5px solid #5f259f;
+}
+
+.note{
+
+margin-top:20px;
+
+background:#f3f4f6;
+
+padding:18px;
+
+border-radius:12px;
+
+font-size:16px;
+
+line-height:30px;
+
+color:black;
+}
+
+input{
+
+width:100%;
+
+padding:14px;
+
+margin-top:15px;
+
+border-radius:10px;
+
+border:1px solid #ccc;
+
+font-size:16px;
+
+background:var(--card);
+
+color:var(--text);
+}
+
+button{
+
+width:100%;
+
+padding:14px;
+
+margin-top:20px;
+
+background:#5f259f;
+
+color:white;
+
+border:none;
+
+border-radius:12px;
+
+font-size:18px;
+
+cursor:pointer;
+}
+
+button:hover{
+
+opacity:0.9;
+}
+
+.success{
+
+background:green;
+
+color:white;
+
+padding:15px;
+
+margin-top:20px;
+
+border-radius:10px;
+
+font-size:18px;
+}
+
+.error{
+
+background:red;
+
+color:white;
+
+padding:15px;
+
+margin-top:20px;
+
+border-radius:10px;
+
+font-size:18px;
+}
+
+.file-box{
+
+margin-top:15px;
+
+text-align:left;
+}
+
+@media(max-width:768px){
+
+.payment-box{
+
+width:90%;
+}
+
+.qr{
+
+width:220px;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>🎓 Student Panel</h2>
+
+<a href="dashboard.php">🏠 Dashboard</a>
+
+<a href="attendance.php">📅 Attendance</a>
+
+<a href="tracking.php">📍 Bus Tracking</a>
+
+<a href="payment.php">💳 Payment</a>
+
+<a href="../logout.php">🚪 Logout</a>
+
+</div>
+
+<div class="main">
+
+<div class="topbar">
+
+<h1>💳 PhonePe Bus Fee Payment</h1>
+
+<button
+class="toggle-btn"
+onclick="toggleMode()">
+
+🌙 Dark / ☀ Light
+
+</button>
+
+</div>
+
+<div class="payment-box">
+
+<h2>
+
+📱 Scan QR & Pay Bus Fees
+
+</h2>
+
+<img
+src="../assets/images/phonepe_qr.jpg"
+class="qr">
+
+<div class="note">
+
+✅ Open PhonePe App<br>
+
+✅ Scan QR Code<br>
+
+✅ Complete Payment<br>
+
+✅ Take Screenshot<br>
+
+✅ Upload Screenshot & Submit
+
+</div>
+
+<form
+method="POST"
+enctype="multipart/form-data">
+
+<input
+type="number"
+name="amount"
+placeholder="Enter Amount"
+required>
+
+<input
+type="text"
+name="transaction_id"
+placeholder="Enter UPI ID"
+required>
+
+<div class="file-box">
+
+<label>
+
+📸 Upload Payment Screenshot
+
+</label>
+
+<input
+type="file"
+name="screenshot"
+required>
+
+</div>
+
+<button
+type="submit"
+name="submit_payment">
+
+✅ Submit Payment
+
+</button>
+
+</form>
+
+<?php
+
+if($message!=""){
+
+echo "<div class='success'>
+
+$message
+
+</div>";
+
+}
+
+if($error!=""){
+
+echo "<div class='error'>
+
+$error
+
+</div>";
+
+}
+
+?>
+
+</div>
+
+</div>
+
+<script>
+
+/* DARK LIGHT MODE */
+
+function toggleMode(){
+
+document.body.classList.toggle('dark');
+
+if(document.body.classList.contains('dark')){
+
+localStorage.setItem('theme','dark');
+
+}else{
+
+localStorage.setItem('theme','light');
+
+}
+
+}
+
+if(localStorage.getItem('theme')==='dark'){
+
+document.body.classList.add('dark');
+
+}
+
+</script>
+
+</body>
+</html>

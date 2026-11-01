@@ -1,0 +1,398 @@
+<?php
+
+include '../includes/db.php';
+
+/* TOTAL STUDENTS */
+
+$total_students = mysqli_num_rows(
+
+mysqli_query($conn,
+"SELECT * FROM students")
+
+);
+
+/* PAID STUDENTS */
+
+$paid_query = mysqli_query($conn,
+
+"SELECT students.username,
+payments.*
+
+FROM payments
+
+JOIN students
+
+ON students.id = payments.student_id");
+
+/* COUNT */
+
+$total_paid = mysqli_num_rows($paid_query);
+
+$total_unpaid = $total_students - $total_paid;
+
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Payment Dashboard</title>
+
+<link rel="stylesheet"
+href="../assets/css/style.css">
+
+<style>
+
+.summary{
+
+display:grid;
+
+grid-template-columns:
+repeat(auto-fit,minmax(220px,1fr));
+
+gap:20px;
+
+margin-bottom:30px;
+}
+
+.box{
+
+background:
+linear-gradient(
+135deg,
+#2563eb,
+#1d4ed8
+);
+
+padding:25px;
+
+border-radius:20px;
+
+color:white;
+
+text-align:center;
+}
+
+.box h1{
+
+font-size:40px;
+
+margin-top:10px;
+}
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+margin-top:20px;
+}
+
+table th{
+
+background:#2563eb;
+
+color:white;
+}
+
+table th,
+table td{
+
+padding:14px;
+
+border:1px solid #ddd;
+
+text-align:center;
+
+background:var(--card);
+
+color:var(--text);
+}
+
+.paid{
+
+color:green;
+
+font-weight:bold;
+}
+
+.unpaid{
+
+color:red;
+
+font-weight:bold;
+}
+
+.section-title{
+
+margin-top:40px;
+
+font-size:28px;
+}
+
+.view-btn{
+
+background:#2563eb;
+
+color:white;
+
+padding:10px 16px;
+
+border-radius:10px;
+
+text-decoration:none;
+
+font-weight:bold;
+
+display:inline-block;
+}
+
+.view-btn:hover{
+
+opacity:0.9;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<?php include '../includes/header.php'; ?>
+
+<div class="main">
+
+<div class="topbar">
+
+<h1>💳 Student Payment Dashboard</h1>
+
+<button
+class="toggle-btn"
+onclick="toggleMode()">
+
+🌙 Dark / ☀ Light
+
+</button>
+
+</div>
+
+<!-- SUMMARY -->
+
+<div class="summary">
+
+<div class="box">
+
+<h2>Total Students</h2>
+
+<h1>
+
+<?php echo $total_students; ?>
+
+</h1>
+
+</div>
+
+<div class="box">
+
+<h2>Paid Students</h2>
+
+<h1>
+
+<?php echo $total_paid; ?>
+
+</h1>
+
+</div>
+
+<div class="box">
+
+<h2>Unpaid Students</h2>
+
+<h1>
+
+<?php echo $total_unpaid; ?>
+
+</h1>
+
+</div>
+
+</div>
+
+<!-- PAID STUDENTS -->
+
+<h2 class="section-title">
+
+✅ Paid Students
+
+</h2>
+
+<table>
+
+<tr>
+
+<th>ID</th>
+<th>Student</th>
+<th>Amount</th>
+<th>UPI ID</th>
+<th>Screenshot</th>
+<th>Date</th>
+<th>Status</th>
+
+</tr>
+
+<?php
+
+while($row=mysqli_fetch_assoc($paid_query)){
+
+?>
+
+<tr>
+
+<td>
+
+<?php echo $row['id']; ?>
+
+</td>
+
+<td>
+
+<?php echo $row['username']; ?>
+
+</td>
+
+<td>
+
+₹<?php echo $row['amount']; ?>
+
+</td>
+
+<td>
+
+<?php echo $row['transaction_id']; ?>
+
+</td>
+
+<td>
+
+<a
+href="../uploads/<?php echo $row['screenshot']; ?>"
+target="_blank"
+class="view-btn">
+
+📸 View Screenshot
+
+</a>
+
+</td>
+
+<td>
+
+<?php echo $row['payment_date']; ?>
+
+</td>
+
+<td class="paid">
+
+✅ Paid
+
+</td>
+
+</tr>
+
+<?php } ?>
+
+</table>
+
+<!-- UNPAID STUDENTS -->
+
+<h2 class="section-title">
+
+❌ Unpaid Students
+
+</h2>
+
+<table>
+
+<tr>
+
+<th>ID</th>
+<th>Student Name</th>
+<th>Status</th>
+
+</tr>
+
+<?php
+
+$unpaid_query = mysqli_query($conn,
+
+"SELECT * FROM students
+
+WHERE id NOT IN (
+
+SELECT student_id FROM payments
+
+)");
+
+while($student=mysqli_fetch_assoc($unpaid_query)){
+
+?>
+
+<tr>
+
+<td>
+
+<?php echo $student['id']; ?>
+
+</td>
+
+<td>
+
+<?php echo $student['username']; ?>
+
+</td>
+
+<td class="unpaid">
+
+❌ Unpaid
+
+</td>
+
+</tr>
+
+<?php } ?>
+
+</table>
+
+</div>
+
+<script>
+
+/* DARK LIGHT MODE */
+
+function toggleMode(){
+
+document.body.classList.toggle('dark');
+
+if(document.body.classList.contains('dark')){
+
+localStorage.setItem('theme','dark');
+
+}else{
+
+localStorage.setItem('theme','light');
+
+}
+
+}
+
+if(localStorage.getItem('theme')==='dark'){
+
+document.body.classList.add('dark');
+
+}
+
+</script>
+
+</body>
+</html>

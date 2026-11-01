@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>College Location Tracking</title>
+
+<link rel="stylesheet" href="../assets/css/style.css">
+
+<!-- LEAFLET CSS -->
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+
+#map{
+    height:550px;
+    width:100%;
+    border-radius:20px;
+}
+
+.location-box{
+    margin-top:20px;
+    padding:20px;
+    border-radius:20px;
+    background:var(--card);
+}
+
+.location-name{
+    color:#2563eb;
+    font-size:22px;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+<h2>Student Panel</h2>
+
+<a href="dashboard.php">🏠 Dashboard</a>
+
+<a href="attendance.php">📅 Attendance</a>
+
+<a href="tracking.php">📍 College Location</a>
+
+<a href="payment.php">💳 Payment</a>
+
+<a href="../logout.php">🚪 Logout</a>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="main">
+
+<div class="topbar">
+
+<h1>📍 College Location</h1>
+
+<button class="toggle-btn" onclick="toggleMode()">
+🌙 Dark / ☀ Light
+</button>
+
+</div>
+
+<!-- CARD -->
+
+<div class="card">
+
+<h2>
+Shree Siddheshwar Women'S College Of Engineering, Solapur
+</h2>
+
+<br>
+
+<div id="map"></div>
+
+<div class="location-box">
+
+<p class="location-name">
+
+📍 Shree Siddheshwar Women'S College Of Engineering, Solapur
+
+</p>
+
+<br>
+
+<p>
+
+Address:
+Solapur, Maharashtra, India
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- LEAFLET JS -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+/* COLLEGE LOCATION */
+
+var collegeLat = 17.6761;
+var collegeLng = 75.9068;
+
+/* CREATE MAP */
+
+var map = L.map('map').setView(
+[collegeLat,collegeLng],
+16
+);
+
+/* MAP TILE */
+
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{
+maxZoom:19
+}
+).addTo(map);
+
+/* LOCATION ICON */
+
+var locationIcon = L.icon({
+
+iconUrl:
+'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+
+iconSize:[50,50]
+
+});
+
+/* LOCATION MARKER */
+
+L.marker(
+[collegeLat,collegeLng],
+{
+icon:locationIcon
+}
+)
+
+.addTo(map)
+
+.bindPopup(
+"<b>📍 Shree Siddheshwar Women'S College Of Engineering, Solapur</b>"
+)
+
+.openPopup();
+
+/* DARK MODE */
+
+function toggleMode(){
+
+document.body.classList.toggle('dark');
+
+if(document.body.classList.contains('dark')){
+localStorage.setItem('theme','dark');
+}else{
+localStorage.setItem('theme','light');
+}
+
+}
+
+/* LOAD SAVED THEME */
+
+if(localStorage.getItem('theme')==='dark'){
+document.body.classList.add('dark');
+}
+
+</script>
+
+</body>
+</html>
